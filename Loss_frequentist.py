@@ -10,7 +10,7 @@ Created on Thu Feb 20 09:44:52 2020
 
 import autograd.numpy as np
 import autograd.numpy.random as npr
-from autograd.scipy.misc import logsumexp
+from autograd.scipy.special import logsumexp
 from autograd import grad
 
 import math
@@ -20,7 +20,7 @@ import sys
 class Loss():
     """Compute loss between data & parameters, create q_parameter objects for
     the BBGVI class etc. Internal states of the object are none because
-    it is EMPTY/ABSTRACT.            
+    it is EMPTY/ABSTRACT.               
     """
 
     def __init__(self):
@@ -63,7 +63,7 @@ class LogLossLinearRegression(Loss):
         params = 1.0 * np.random.randn(parser.num_params)
         
         params[ parser.get_indexes(params, 'log_sigma2') ] = (
-            params[ parser.get_indexes(params, 'log_sigma2') ] + 10.0)
+            params[ parser.get_indexes(params, 'log_sigma2') ] + 20.0)
         
         return (parser, params)
         

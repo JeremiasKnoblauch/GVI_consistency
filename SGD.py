@@ -8,8 +8,10 @@ Created on Thu Feb 20 09:10:36 2020
 
 import autograd.numpy as np
 import autograd.numpy.random as npr
-from autograd.scipy.misc import logsumexp
+from autograd.scipy.special import logsumexp
 from autograd import grad
+
+import numpy
 
 import sys
 
@@ -74,8 +76,8 @@ class SGD():
         def objective(params, parser, Y_, X_):           
             """Y_, X_ will be sub-samples of Y & X"""
             
-            return (np.mean(self.n * self.L.avg_loss(params, parser, 
-                                                     Y_, X_)))
+            return (np.mean(self.L.avg_loss(params, parser, 
+                                            Y_, X_)))
         
         return objective
         
@@ -164,26 +166,18 @@ class SGD():
 if True:
     """test if stuff works"""
     
-    """get a simulator for BLRs"""
-    from BLRSimulator import BLRSimulator
+    n = 10000
     
-    """set up the simulation params"""
-    coefs = np.array([1.0,-5.0, 20.5, 4.0, -3.5])
-    sigma2 = 1.0
-    d= len(coefs)
-    n = 1000
+    u, v = numpy.random.multivariate_normal([0, 0],
+                                            [[1, 0.8], [0.8, 1]],
+                                            n).T
     
-    """create simulation object + simulated variables"""
-    sim =  BLRSimulator(d, coefs, sigma2=sigma2)
-    X, Y = sim.generate(n=n, seed = 2)
-    
-    MLE = np.matmul(
-            np.linalg.inv(np.matmul(np.transpose(X), X)), 
-            np.matmul(np.transpose(X), Y)
-            )
-    
-    print("true coefs:", coefs)
-    print("MLE", MLE)
+    z = numpy.random.normal(2, 1, n)
+    X = np.array([np.ones(n), 1 * z + v]).T
+    d = X.shape[1]
+    y_coefs = [0, 0.5]
+    y = X.dot(y_coefs) + u
+
     
     """create SGD object + run SGD"""
     from Loss_frequentist import LogLossLinearRegression
@@ -191,10 +185,11 @@ if True:
     
     
     """THIS DOES NOT WORK! WHY?!?!"""
-    optimization_object = SGD(StandardLoss, Y, X)
+    optimization_object = SGD(StandardLoss, y, X)
     
     optimization_object.fit(batch_size=1,epochs=30,learning_rate=0.1)
     
+    # this is pretty bad. alpha = -.79, beta = .8
     optimization_object.report_parameters()
     
     
@@ -205,11 +200,28 @@ if True:
     
     
     """THIS DOES NOT WORK! WHY?!?!"""
-    optimization_object = SGD(GammaLoss, Y, X)
+    optimization_object = SGD(GammaLoss, y, X)
     
     optimization_object.fit(batch_size=1,epochs=50,learning_rate=0.01)
     
     optimization_object.report_parameters()
+    
+    
+    # That would be the inconsistent thing to do. 
+    # instead, let's do the correct IV thing
+    
+    # First, we would need to do y on z
+    y_on_z = SGD(StandardLoss, y, z)
+    # this doesn't work becasue z is 1-dimensional
+    y_on_z.fit(batch_size = 1, epochs = 50, learning_rate = 0.01)
+    y_on_z.report_parameters()
+    
+    # and then, in second step, do x on z
+    x_on_z = SGD(StandardLoss, X, z)
+    x_on_z.fit(batch_size = 1, epochs = 50, learning_rate = 0.01)
+    x_on_z.report_parameters()
+    
+    # and then we need to report b_y_on_z / b_x_on_z
     
     
     

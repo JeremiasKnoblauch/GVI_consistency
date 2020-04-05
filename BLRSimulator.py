@@ -27,6 +27,11 @@ class BLRSimulator():
         self.X_mean, self.X_var = X_mean, X_var
         #ADD: Error check -- is d same dim as coefs?
         #ADD: If X_mean, X_var, sigma are None, set them to 0, 1, 0 (vecs)
+        
+        # Jeremias' shitty testing hack
+        varbool = True
+        meanbool = True
+        
         if X_mean is None:
             self.X_mean = np.zeros(d)
         else:
@@ -65,7 +70,7 @@ class BLRSimulator():
     
 
 #short test if everything works as we want
-TEST = False
+TEST = True
 if TEST:
     d = 3
     coefs = np.array([1,2,3])
@@ -75,6 +80,7 @@ if TEST:
     
     BLR_gen = BLRSimulator(d,coefs,X_mean,X_var,sigma)
     (X,Y) = BLR_gen.generate(100000)
+    print(X.shape)
             
     print("Coefs are", coefs)
     print("X mean is", X_mean)
